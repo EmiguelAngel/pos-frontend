@@ -41,17 +41,17 @@ export const routes: Routes = [
       {
         path: 'products',
         loadComponent: () => import('./features/admin/products/product-list/product-list')
-          .then(m => m.ProductList)
+          .then(m => m.ProductListComponent)
       },
       {
         path: 'users',
         loadComponent: () => import('./features/admin/users/user-list/user-list')
-          .then(m => m.UserList)
+          .then(m => m.UserListComponent)
       },
       {
         path: 'reports',
         loadComponent: () => import('./features/admin/reports/sales-report/sales-report')
-          .then(m => m.SalesReport)
+          .then(m => m.SalesReportComponent)
       }
     ]
   },
@@ -71,12 +71,12 @@ export const routes: Routes = [
       {
         path: 'punto-venta',
         loadComponent: () => import('./features/cashier/pos/pos')
-          .then(m => m.Pos)
+          .then(m => m.PosComponent)
       },
       {
         path: 'historial',
         loadComponent: () => import('./features/cashier/sales-history/sales-history')
-          .then(m => m.SalesHistory)
+          .then(m => m.SalesHistoryComponent)
       }
     ]
   },

@@ -1,1 +1,228 @@
-<p>product-list works!</p>
+<!-- src/app/features/admin/products/product-list/product-list.component.html -->
+<div class="page-layout">
+  <app-navbar></app-navbar>
+  <app-sidebar></app-sidebar>
+
+  <main class="page-content">
+    <div class="page-container">
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <h1>Gestión de Productos</h1>
+          <p>Administra el catálogo de productos</p>
+        </div>
+        <button class="btn-primary" (click)="openCreateModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Nuevo Producto
+        </button>
+      </div>
+
+      <!-- Mensajes -->
+      <div *ngIf="successMessage" class="alert alert-success">
+        {{ successMessage }}
+      </div>
+      <div *ngIf="error" class="alert alert-error">
+        {{ error }}
+      </div>
+
+      <!-- Filtros -->
+      <div class="filters-card">
+        <div class="filter-group">
+          <label>Buscar</label>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="filterProducts()"
+            placeholder="Buscar por nombre o categoría..."
+            class="filter-input"
+          />
+        </div>
+        <div class="filter-group">
+          <label>Categoría</label>
+          <select
+            [(ngModel)]="selectedCategory"
+            (ngModelChange)="filterProducts()"
+            class="filter-select"
+          >
+            <option value="">Todas las categorías</option>
+            <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+          </select>
+        </div>
+        <button class="btn-secondary" (click)="clearFilters()">
+          Limpiar Filtros
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Cargando productos...</p>
+      </div>
+
+      <!-- Tabla de Productos -->
+      <div *ngIf="!loading" class="table-card">
+        <div class="table-wrapper">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Descripción</th>
+                <th>Categoría</th>
+                <th>Precio</th>
+                <th>Stock</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let product of filteredProducts">
+                <td>{{ product.idProducto }}</td>
+                <td class="product-name">{{ product.descripcion }}</td>
+                <td>
+                  <span class="badge">{{ product.categoria }}</span>
+                </td>
+                <td class="price">{{ formatCurrency(product.precioUnitario) }}</td>
+                <td class="stock">{{ product.cantidadDisponible }}</td>
+                <td>
+                  <span [class]="'stock-badge ' + getStockClass(product.cantidadDisponible)">
+                    <span *ngIf="product.cantidadDisponible === 0">Sin stock</span>
+                    <span *ngIf="product.cantidadDisponible > 0 && product.cantidadDisponible <= 5">Stock crítico</span>
+                    <span *ngIf="product.cantidadDisponible > 5 && product.cantidadDisponible <= 10">Stock bajo</span>
+                    <span *ngIf="product.cantidadDisponible > 10">Disponible</span>
+                  </span>
+                </td>
+                <td class="actions">
+                  <button
+                    class="btn-icon btn-edit"
+                    (click)="openEditModal(product)"
+                    title="Editar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                  </button>
+                  <button
+                    class="btn-icon btn-delete"
+                    (click)="confirmDelete(product)"
+                    title="Eliminar"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="3 6 5 6 21 6"></polyline>
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="filteredProducts.length === 0">
+                <td colspan="7" class="empty-state">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                  </svg>
+                  <p>No se encontraron productos</p>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modal Crear/Editar Producto -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Editar Producto' : 'Nuevo Producto' }}</h2>
+      <button class="modal-close" (click)="closeModal()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Descripción *</label>
+        <input
+          type="text"
+          [(ngModel)]="currentProduct.descripcion"
+          placeholder="Ej: Arroz Diana 1Kg"
+          class="form-input"
+        />
+      </div>
+
+      <div class="form-group">
+        <label>Categoría *</label>
+        <select [(ngModel)]="currentProduct.categoria" class="form-select">
+          <option value="">Selecciona una categoría</option>
+          <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Precio Unitario *</label>
+          <input
+            type="number"
+            [(ngModel)]="currentProduct.precioUnitario"
+            placeholder="0"
+            min="0"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Cantidad Disponible *</label>
+          <input
+            type="number"
+            [(ngModel)]="currentProduct.cantidadDisponible"
+            placeholder="0"
+            min="0"
+            class="form-input"
+          />
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="closeModal()">
+        Cancelar
+      </button>
+      <button class="btn-primary" (click)="saveProduct()">
+        {{ isEditMode ? 'Actualizar' : 'Crear' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirmar Eliminación -->
+<div class="modal-overlay" *ngIf="showDeleteConfirm" (click)="cancelDelete()">
+  <div class="modal-content modal-small" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Confirmar Eliminación</h2>
+    </div>
+
+    <div class="modal-body">
+      <p>¿Estás seguro de que deseas eliminar el producto?</p>
+      <p class="delete-warning">
+        <strong>{{ productToDelete?.descripcion }}</strong>
+      </p>
+      <p class="text-muted">Esta acción no se puede deshacer.</p>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-secondary" (click)="cancelDelete()">
+        Cancelar
+      </button>
+      <button class="btn-danger" (click)="deleteProduct()">
+        Eliminar
+      </button>
+    </div>
+  </div>
+</div>

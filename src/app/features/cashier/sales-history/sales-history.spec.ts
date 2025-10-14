@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SalesHistory } from './sales-history';
+import { SalesHistoryComponent } from './sales-history';
 
 describe('SalesHistory', () => {
-  let component: SalesHistory;
-  let fixture: ComponentFixture<SalesHistory>;
+  let component: SalesHistoryComponent;
+  let fixture: ComponentFixture<SalesHistoryComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SalesHistory]
+      imports: [SalesHistoryComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(SalesHistory);
+    fixture = TestBed.createComponent(SalesHistoryComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
