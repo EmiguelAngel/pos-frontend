@@ -18,11 +18,31 @@ export const CATEGORIES = [
 
 // ==================== MÉTODOS DE PAGO ====================
 export const PAYMENT_METHODS = [
-  'Efectivo',
-  'Tarjeta Crédito',
-  'Tarjeta Débito',
-  'Transferencia'
+  'EFECTIVO',
+  'TARJETA_CREDITO',
+  'TARJETA_DEBITO',
+  'TRANSFERENCIA'
 ] as const;
+
+// ==================== API ENDPOINTS ====================
+export const API_ENDPOINTS = {
+  PRODUCTOS: '/productos',
+  USUARIOS: '/usuarios',
+  VENTAS: '/ventas',
+  AUTH: {
+    LOGIN: '/usuarios/login'
+  },
+  PRODUCTOS_ENDPOINTS: {
+    SEARCH: '/productos/search',
+    CATEGORIA: '/productos/categoria',
+    STOCK_BAJO: '/productos/stock-bajo',
+    UPDATE_STOCK: '/productos/{id}/stock'
+  },
+  VENTAS_ENDPOINTS: {
+    PROCESAR: '/ventas/procesar',
+    VALIDAR: '/ventas/validar'
+  }
+} as const;
 
 // ==================== ROLES ====================
 export const ROLES = {

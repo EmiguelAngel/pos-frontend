@@ -213,22 +213,13 @@ export class PosComponent implements OnInit {
 
     // Preparar datos de la venta
     const saleData: CreateSaleRequest = {
-      invoice: {
-        idUsuario: currentUser.idUsuario,
-        fecha: new Date(),
-        subtotal: this.subtotal,
-        iva: this.iva,
-        total: this.total
-      },
-      details: this.cartItems.map(item => ({
+      idUsuario: currentUser.idUsuario,
+      items: this.cartItems.map(item => ({
         idProducto: item.product.idProducto,
-        cantidad: item.quantity,
-        precioUnitario: item.product.precioUnitario,
-        subtotal: item.subtotal
+        cantidad: item.quantity
       })),
-      payment: {
-        metodoPago: this.selectedPaymentMethod as any,
-        monto: this.total
+      datosPago: {
+        metodoPago: this.selectedPaymentMethod as 'EFECTIVO' | 'TARJETA_CREDITO' | 'TARJETA_DEBITO' | 'TRANSFERENCIA'
       }
     };
 

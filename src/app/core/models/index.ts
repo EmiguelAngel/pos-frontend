@@ -98,11 +98,25 @@ export interface ApiResponse<T> {
 }
 
 // ==================== SALE REQUEST ====================
-// Para crear una venta completa
+// Para crear una venta completa - Coincide con VentaRequest del backend
 export interface CreateSaleRequest {
-  invoice: Omit<Invoice, 'idFactura' | 'idPago'>;
-  details: Omit<InvoiceDetail, 'idDetalle' | 'idFactura'>[];
-  payment: Omit<Payment, 'idPago' | 'idFactura'>;
+  idUsuario: number;
+  items: ItemVenta[];
+  datosPago: DatosPago;
+}
+
+export interface ItemVenta {
+  idProducto: number;
+  cantidad: number;
+}
+
+export interface DatosPago {
+  metodoPago: 'EFECTIVO' | 'TARJETA_CREDITO' | 'TARJETA_DEBITO' | 'TRANSFERENCIA';
+  numeroTarjeta?: string;
+  nombreTitular?: string;
+  codigoSeguridad?: string;
+  mesVencimiento?: string;
+  anoVencimiento?: string;
 }
 
 // ==================== DASHBOARD STATS ====================

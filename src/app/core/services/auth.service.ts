@@ -38,33 +38,61 @@ export class AuthService {
 
   /**
    * ========================================
-   * 🔌 LOGIN - CONECTA TU API AQUÍ
+   * 🔌 LOGIN - CONECTADO AL BACKEND
    * ========================================
    */
   login(correo: string, contrasena: string): Observable<AuthResponse> {
     const loginData: LoginRequest = { correo, contrasena };
 
-    // 🔌 REEMPLAZA ESTO CON TU LLAMADA API REAL
-    // Ejemplo:
-    // return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, loginData)
-
-    return this.http.post<AuthResponse>(`${this.apiUrl}/auth/login`, loginData)
+    // Conectado al endpoint /api/usuarios/login del backend
+    return this.http.post<any>(`${this.apiUrl}/usuarios/login`, loginData)
       .pipe(
-        tap(response => {
+        map(response => {
+          console.log('Respuesta del backend:', response);
+
+          // Adaptar la respuesta del backend al formato esperado por el frontend
+          if (!response.success) {
+            throw new Error(response.message || 'Error en login');
+          }
+
+          // Transformar usuario: extraer idRol del objeto rol
+          const user: User = {
+            ...response.user,
+            idRol: response.user.rol?.idRol || response.user.idRol
+          };
+
+          // Crear respuesta compatible con AuthResponse
+          const authResponse: AuthResponse = {
+            user: user,
+            token: response.token || 'jwt_token_placeholder',
+            message: response.message
+          };
+
+          return authResponse;
+        }),
+        tap(authResponse => {
           // Guardar token si viene en la respuesta
-          if (response.token) {
-            this.storage.setItem(environment.tokenKey, response.token);
+          if (authResponse.token) {
+            this.storage.setItem(environment.tokenKey, authResponse.token);
           }
 
           // Guardar usuario
-          this.storage.setItem(environment.userKey, response.user);
+          this.storage.setItem(environment.userKey, authResponse.user);
 
           // Actualizar subject
-          this.currentUserSubject.next(response.user);
+          this.currentUserSubject.next(authResponse.user);
         }),
         catchError(error => {
           console.error('Error en login:', error);
-          return throwError(() => error);
+          let errorMessage = 'Error en el servidor';
+
+          if (error.error?.message) {
+            errorMessage = error.error.message;
+          } else if (error.message) {
+            errorMessage = error.message;
+          }
+
+          return throwError(() => ({ message: errorMessage }));
         })
       );
   }

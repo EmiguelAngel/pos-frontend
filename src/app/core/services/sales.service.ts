@@ -10,7 +10,7 @@ import { Invoice, InvoiceDetail, CreateSaleRequest } from '../models';
   providedIn: 'root'
 })
 export class SalesService {
-  private apiUrl = `${environment.apiUrl}/sales`; // 🔧 Ajusta según tu API (puede ser /invoices, /facturas, etc.)
+  private apiUrl = `${environment.apiUrl}/ventas`; // Conectado a /api/ventas del backend
 
   constructor(private http: HttpClient) { }
 
@@ -20,9 +20,19 @@ export class SalesService {
    * ========================================
    */
   createSale(saleData: CreateSaleRequest): Observable<Invoice> {
-    // 🔌 CONECTA TU API AQUÍ
-    // Esta endpoint debe crear la factura, detalles y pago en una sola transacción
-    return this.http.post<Invoice>(this.apiUrl, saleData)
+    // Conectado al endpoint /api/ventas/procesar usando el patrón Facade
+    return this.http.post<Invoice>(`${this.apiUrl}/procesar`, saleData)
+      .pipe(catchError(this.handleError));
+  }
+
+  /**
+   * ========================================
+   * 🔌 VALIDAR VENTA (SIN PROCESAR)
+   * ========================================
+   */
+  validateSale(saleData: CreateSaleRequest): Observable<any> {
+    // Conectado al endpoint /api/ventas/validar
+    return this.http.post<any>(`${this.apiUrl}/validar`, saleData)
       .pipe(catchError(this.handleError));
   }
 

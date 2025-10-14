@@ -10,7 +10,7 @@ import { User } from '../models';
   providedIn: 'root'
 })
 export class UserService {
-  private apiUrl = `${environment.apiUrl}/users`; // 🔧 Ajusta la ruta según tu API
+  private apiUrl = `${environment.apiUrl}/usuarios`; // Conectado a /api/usuarios del backend
 
   constructor(private http: HttpClient) { }
 

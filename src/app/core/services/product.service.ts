@@ -10,7 +10,7 @@ import { Product } from '../models';
   providedIn: 'root'
 })
 export class ProductService {
-  private apiUrl = `${environment.apiUrl}/products`; // 🔧 Ajusta la ruta según tu API
+  private apiUrl = `${environment.apiUrl}/productos`; // Conectado a /api/productos del backend
 
   constructor(private http: HttpClient) { }
 
@@ -88,8 +88,8 @@ export class ProductService {
    * ========================================
    */
   getProductsByCategory(category: string): Observable<Product[]> {
-    // 🔌 CONECTA TU API AQUÍ
-    return this.http.get<Product[]>(`${this.apiUrl}/category/${category}`)
+    // Conectado al endpoint /api/productos/categoria/{categoria}
+    return this.http.get<Product[]>(`${this.apiUrl}/categoria/${category}`)
       .pipe(catchError(this.handleError));
   }
 
@@ -98,10 +98,10 @@ export class ProductService {
    * 🔌 OBTENER PRODUCTOS CON BAJO STOCK
    * ========================================
    */
-  getLowStockProducts(threshold: number = 10): Observable<Product[]> {
-    // 🔌 CONECTA TU API AQUÍ
-    const params = new HttpParams().set('threshold', threshold.toString());
-    return this.http.get<Product[]>(`${this.apiUrl}/low-stock`, { params })
+  getLowStockProducts(threshold: number = 5): Observable<Product[]> {
+    // Conectado al endpoint /api/productos/stock-bajo?limite=X
+    const params = new HttpParams().set('limite', threshold.toString());
+    return this.http.get<Product[]>(`${this.apiUrl}/stock-bajo`, { params })
       .pipe(catchError(this.handleError));
   }
 
