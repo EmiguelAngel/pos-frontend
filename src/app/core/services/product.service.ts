@@ -16,40 +16,40 @@ export class ProductService {
 
   /**
    * ========================================
-   * 🔌 OBTENER TODOS LOS PRODUCTOS
+   *  OBTENER TODOS LOS PRODUCTOS
    * ========================================
    */
   getProducts(): Observable<Product[]> {
-    // 🔌 CONECTA TU API AQUÍ
+
     return this.http.get<Product[]>(this.apiUrl)
       .pipe(catchError(this.handleError));
   }
 
   /**
    * ========================================
-   * 🔌 OBTENER PRODUCTO POR ID
+   *  OBTENER PRODUCTO POR ID
    * ========================================
    */
   getProductById(id: number): Observable<Product> {
-    // 🔌 CONECTA TU API AQUÍ
+    //  CONECTA TU API AQUÍ
     return this.http.get<Product>(`${this.apiUrl}/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   /**
    * ========================================
-   * 🔌 CREAR PRODUCTO
+   *  CREAR PRODUCTO
    * ========================================
    */
   createProduct(product: Product): Observable<Product> {
-    // 🔌 CONECTA TU API AQUÍ
+
     return this.http.post<Product>(this.apiUrl, product)
       .pipe(catchError(this.handleError));
   }
 
   /**
    * ========================================
-   * 🔌 ACTUALIZAR PRODUCTO
+   *  ACTUALIZAR PRODUCTO
    * ========================================
    */
   updateProduct(id: number, product: Product): Observable<Product> {
@@ -60,7 +60,7 @@ export class ProductService {
 
   /**
    * ========================================
-   * 🔌 ELIMINAR PRODUCTO
+   *  ELIMINAR PRODUCTO
    * ========================================
    */
   deleteProduct(id: number): Observable<void> {
@@ -71,12 +71,12 @@ export class ProductService {
 
   /**
    * ========================================
-   * 🔌 BUSCAR PRODUCTOS
+   *  BUSCAR PRODUCTOS
    * ========================================
    */
   searchProducts(searchTerm: string): Observable<Product[]> {
-    // 🔌 CONECTA TU API AQUÍ
-    // Ajusta el nombre del parámetro según tu backend (q, search, term, etc.)
+
+
     const params = new HttpParams().set('q', searchTerm);
     return this.http.get<Product[]>(`${this.apiUrl}/search`, { params })
       .pipe(catchError(this.handleError));
@@ -84,7 +84,7 @@ export class ProductService {
 
   /**
    * ========================================
-   * 🔌 OBTENER PRODUCTOS POR CATEGORÍA
+   *  OBTENER PRODUCTOS POR CATEGORÍA
    * ========================================
    */
   getProductsByCategory(category: string): Observable<Product[]> {
@@ -95,7 +95,7 @@ export class ProductService {
 
   /**
    * ========================================
-   * 🔌 OBTENER PRODUCTOS CON BAJO STOCK
+   *  OBTENER PRODUCTOS CON BAJO STOCK
    * ========================================
    */
   getLowStockProducts(threshold: number = 5): Observable<Product[]> {
