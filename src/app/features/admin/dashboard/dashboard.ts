@@ -52,10 +52,7 @@ export class DashboardComponent implements OnInit {
     this.loading = true;
     this.error = '';
 
-    // 🔌 AQUÍ SE CONECTAN LAS LLAMADAS A TU API
-    // Por ahora mostrará error hasta que conectes tu backend
-
-    // Cargar productos
+    // Cargar productos desde el backend
     this.productService.getProducts().subscribe({
       next: (products) => {
         this.totalProducts = products.length;

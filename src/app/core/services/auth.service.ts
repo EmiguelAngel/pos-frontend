@@ -37,14 +37,13 @@ export class AuthService {
   }
 
   /**
-   * ========================================
-   * 🔌 LOGIN - CONECTADO AL BACKEND
-   * ========================================
+   * Autenticar usuario en el sistema
+   * @param correo Email del usuario
+   * @param contrasena Contraseña del usuario
+   * @returns Observable con la respuesta de autenticación
    */
   login(correo: string, contrasena: string): Observable<AuthResponse> {
     const loginData: LoginRequest = { correo, contrasena };
-
-    // Conectado al endpoint /api/usuarios/login del backend
     return this.http.post<any>(`${this.apiUrl}/usuarios/login`, loginData)
       .pipe(
         map(response => {
@@ -98,14 +97,10 @@ export class AuthService {
   }
 
   /**
-   * ========================================
-   * 🔌 LOGOUT - CONECTA TU API AQUÍ (opcional)
-   * ========================================
+   * Cerrar sesión del usuario actual
+   * Limpia el token y datos de usuario del almacenamiento local
    */
   logout(): void {
-    // 🔌 Si tu backend tiene endpoint de logout, descomenta esto:
-    // this.http.post(`${this.apiUrl}/auth/logout`, {}).subscribe();
-
     // Limpiar localStorage
     this.storage.removeItem(environment.tokenKey);
     this.storage.removeItem(environment.userKey);
@@ -118,15 +113,12 @@ export class AuthService {
   }
 
   /**
-   * ========================================
-   * 🔌 GET CURRENT USER - CONECTA TU API AQUÍ (opcional)
-   * ========================================
+   * Obtener datos del usuario actual desde el API
+   * @returns Observable con los datos actualizados del usuario
    */
   getCurrentUserFromApi(): Observable<User> {
-    // 🔌 Si tu backend tiene endpoint para obtener usuario actual
-    // return this.http.get<User>(`${this.apiUrl}/auth/me`);
-
-    // Por ahora devuelve del localStorage
+    // Actualmente devuelve del localStorage
+    // Si se implementa endpoint backend: return this.http.get<User>(`${this.apiUrl}/auth/me`);
     const user = this.currentUserValue;
     return user ? of(user) : throwError(() => new Error('No user logged in'));
   }

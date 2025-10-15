@@ -37,45 +37,41 @@ export class SalesService {
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER TODAS LAS VENTAS
-   * ========================================
+   * Obtener todas las ventas del sistema
+   * @returns Observable con array de facturas
    */
   getAllSales(): Observable<Invoice[]> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.get<Invoice[]>(this.apiUrl)
       .pipe(catchError(this.handleError));
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER VENTA POR ID
-   * ========================================
+   * Obtener una venta específica por su ID
+   * @param id Identificador de la factura
+   * @returns Observable con los datos de la factura
    */
   getSaleById(id: number): Observable<Invoice> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.get<Invoice>(`${this.apiUrl}/${id}`)
       .pipe(catchError(this.handleError));
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER VENTAS POR USUARIO (CAJERO)
-   * ========================================
+   * Obtener ventas realizadas por un usuario específico (cajero)
+   * @param userId ID del usuario cajero
+   * @returns Observable con las ventas del usuario
    */
   getSalesByUser(userId: number): Observable<Invoice[]> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.get<Invoice[]>(`${this.apiUrl}/user/${userId}`)
       .pipe(catchError(this.handleError));
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER VENTAS POR RANGO DE FECHAS
-   * ========================================
+   * Obtener ventas por rango de fechas
+   * @param startDate Fecha inicio (YYYY-MM-DD)
+   * @param endDate Fecha fin (YYYY-MM-DD)
+   * @returns Observable con las ventas en el rango
    */
   getSalesByDateRange(startDate: string, endDate: string): Observable<Invoice[]> {
-    // 🔌 CONECTA TU API AQUÍ
     const params = new HttpParams()
       .set('startDate', startDate)
       .set('endDate', endDate);
@@ -85,34 +81,31 @@ export class SalesService {
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER DETALLES DE UNA VENTA
-   * ========================================
+   * Obtener detalles específicos de una venta
+   * @param invoiceId ID de la factura
+   * @returns Observable con los detalles de la venta
    */
   getSaleDetails(invoiceId: number): Observable<InvoiceDetail[]> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.get<InvoiceDetail[]>(`${this.apiUrl}/${invoiceId}/details`)
       .pipe(catchError(this.handleError));
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER VENTAS DE HOY
-   * ========================================
+   * Obtener ventas realizadas hoy
+   * @returns Observable con las ventas del día actual
    */
   getTodaySales(): Observable<Invoice[]> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.get<Invoice[]>(`${this.apiUrl}/today`)
       .pipe(catchError(this.handleError));
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER VENTAS DEL MES
-   * ========================================
+   * Obtener ventas de un mes específico
+   * @param year Año
+   * @param month Mes (1-12)
+   * @returns Observable con las ventas del mes
    */
   getMonthSales(year: number, month: number): Observable<Invoice[]> {
-    // 🔌 CONECTA TU API AQUÍ
     const params = new HttpParams()
       .set('year', year.toString())
       .set('month', month.toString());
@@ -122,12 +115,10 @@ export class SalesService {
   }
 
   /**
-   * ========================================
-   * 🔌 OBTENER ESTADÍSTICAS DE VENTAS
-   * ========================================
+   * Obtener estadísticas generales de ventas
+   * @returns Observable con estadísticas de ventas
    */
   getSalesStats(): Observable<any> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.get<any>(`${this.apiUrl}/stats`)
       .pipe(catchError(this.handleError));
   }

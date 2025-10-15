@@ -26,12 +26,11 @@ export class ProductService {
   }
 
   /**
-   * ========================================
-   *  OBTENER PRODUCTO POR ID
-   * ========================================
+   * Obtener un producto específico por su ID
+   * @param id Identificador del producto
+   * @returns Observable con los datos del producto
    */
   getProductById(id: number): Observable<Product> {
-    //  CONECTA TU API AQUÍ
     return this.http.get<Product>(`${this.apiUrl}/${id}`)
       .pipe(catchError(this.handleError));
   }
@@ -48,23 +47,22 @@ export class ProductService {
   }
 
   /**
-   * ========================================
-   *  ACTUALIZAR PRODUCTO
-   * ========================================
+   * Actualizar datos de un producto existente
+   * @param id ID del producto a actualizar
+   * @param product Nuevos datos del producto
+   * @returns Observable con el producto actualizado
    */
   updateProduct(id: number, product: Product): Observable<Product> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.put<Product>(`${this.apiUrl}/${id}`, product)
       .pipe(catchError(this.handleError));
   }
 
   /**
-   * ========================================
-   *  ELIMINAR PRODUCTO
-   * ========================================
+   * Eliminar un producto del sistema
+   * @param id ID del producto a eliminar
+   * @returns Observable vacío
    */
   deleteProduct(id: number): Observable<void> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.delete<void>(`${this.apiUrl}/${id}`)
       .pipe(catchError(this.handleError));
   }
@@ -106,12 +104,12 @@ export class ProductService {
   }
 
   /**
-   * ========================================
-   * 🔌 ACTUALIZAR STOCK DE PRODUCTO
-   * ========================================
+   * Actualizar stock de un producto específico
+   * @param productId ID del producto
+   * @param quantity Nueva cantidad en stock
+   * @returns Observable con el producto actualizado
    */
   updateStock(productId: number, quantity: number): Observable<Product> {
-    // 🔌 CONECTA TU API AQUÍ
     return this.http.patch<Product>(`${this.apiUrl}/${productId}/stock`, { quantity })
       .pipe(catchError(this.handleError));
   }
