@@ -41,6 +41,15 @@ export class PosComponent implements OnInit {
   selectedPaymentMethod = '';
   paymentMethods = PAYMENT_METHODS;
 
+  // Datos de tarjeta
+  cardData = {
+    numeroTarjeta: '',
+    nombreTitular: '',
+    codigoSeguridad: '',
+    mesVencimiento: '',
+    anoVencimiento: ''
+  };
+
   // Estados
   loading = true;
   processingPayment = false;
@@ -178,6 +187,53 @@ export class PosComponent implements OnInit {
   clearCart(): void {
     this.cartService.clearCart();
     this.selectedPaymentMethod = '';
+    this.clearCardData();
+  }
+
+  /**
+   * Verificar si el método de pago requiere datos de tarjeta
+   */
+  requiresCardData(): boolean {
+    return this.selectedPaymentMethod === 'TARJETA_CREDITO' || this.selectedPaymentMethod === 'TARJETA_DEBITO';
+  }
+
+  /**
+   * Limpiar datos de tarjeta
+   */
+  clearCardData(): void {
+    this.cardData = {
+      numeroTarjeta: '',
+      nombreTitular: '',
+      codigoSeguridad: '',
+      mesVencimiento: '',
+      anoVencimiento: ''
+    };
+  }
+
+  /**
+   * Manejar cambio de método de pago
+   */
+  onPaymentMethodChange(): void {
+    if (!this.requiresCardData()) {
+      this.clearCardData();
+    }
+  }
+
+  /**
+   * Formatear número de tarjeta mientras se escribe
+   */
+  formatCardNumber(event: any): void {
+    let value = event.target.value.replace(/\D/g, '');
+    value = value.replace(/(\d{4})(?=\d)/g, '$1 ');
+    this.cardData.numeroTarjeta = value;
+  }
+
+  /**
+   * Solo permitir números en CVV
+   */
+  onCvvInput(event: any): void {
+    const value = event.target.value.replace(/\D/g, '');
+    this.cardData.codigoSeguridad = value;
   }
 
   /**
@@ -192,6 +248,29 @@ export class PosComponent implements OnInit {
     if (!this.selectedPaymentMethod) {
       this.showError('Selecciona un método de pago');
       return false;
+    }
+
+    // Validar datos de tarjeta si es necesario
+    if (this.requiresCardData()) {
+      if (!this.cardData.numeroTarjeta || this.cardData.numeroTarjeta.length < 13) {
+        this.showError('Número de tarjeta inválido');
+        return false;
+      }
+      
+      if (!this.cardData.nombreTitular || this.cardData.nombreTitular.trim() === '') {
+        this.showError('El nombre del titular es obligatorio');
+        return false;
+      }
+      
+      if (!this.cardData.codigoSeguridad || this.cardData.codigoSeguridad.length < 3) {
+        this.showError('Código de seguridad inválido');
+        return false;
+      }
+
+      if (!this.cardData.mesVencimiento || !this.cardData.anoVencimiento) {
+        this.showError('Fecha de vencimiento incompleta');
+        return false;
+      }
     }
 
     return true;
@@ -214,15 +293,26 @@ export class PosComponent implements OnInit {
     }
 
     // Preparar datos de la venta
+    const datosPago: any = {
+      metodoPago: this.selectedPaymentMethod as 'EFECTIVO' | 'TARJETA_CREDITO' | 'TARJETA_DEBITO' | 'TRANSFERENCIA'
+    };
+
+    // Agregar datos de tarjeta si es necesario
+    if (this.requiresCardData()) {
+      datosPago.numeroTarjeta = this.cardData.numeroTarjeta;
+      datosPago.nombreTitular = this.cardData.nombreTitular;
+      datosPago.codigoSeguridad = this.cardData.codigoSeguridad;
+      datosPago.mesVencimiento = this.cardData.mesVencimiento;
+      datosPago.anoVencimiento = this.cardData.anoVencimiento;
+    }
+
     const saleData: CreateSaleRequest = {
       idUsuario: currentUser.idUsuario,
       items: this.cartItems.map(item => ({
         idProducto: item.product.idProducto,
         cantidad: item.quantity
       })),
-      datosPago: {
-        metodoPago: this.selectedPaymentMethod as 'EFECTIVO' | 'TARJETA_CREDITO' | 'TARJETA_DEBITO' | 'TRANSFERENCIA'
-      }
+      datosPago: datosPago
     };
 
     // 🔌 Llamada a la API
@@ -237,6 +327,7 @@ export class PosComponent implements OnInit {
         this.showConfirmModal = true;
         this.cartService.clearCart();
         this.selectedPaymentMethod = '';
+        this.clearCardData();
       },
       error: (httpError) => {
         console.error('🚨 === ANÁLISIS COMPLETO DEL ERROR ===');

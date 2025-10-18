@@ -486,6 +486,70 @@
   border-color: #667eea;
 }
 
+/* Datos de Tarjeta */
+.card-data-section {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 16px;
+  margin: 16px 0;
+}
+
+.card-data-section h4 {
+  color: #374151;
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-data-section h4::before {
+  content: "💳";
+  font-size: 16px;
+}
+
+.card-field {
+  margin-bottom: 12px;
+}
+
+.card-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.card-input, .card-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.card-input:focus, .card-select:focus {
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.card-row {
+  display: flex;
+  gap: 8px;
+}
+
+.card-field-small {
+  flex: 1;
+}
+
+.card-field:not(.card-field-small) {
+  flex: 2;
+}
+
 /* Acciones del Carrito */
 .cart-actions {
   display: flex;
@@ -622,6 +686,21 @@
   justify-content: space-between;
   padding: 8px 0;
   font-size: 15px;
+}
+
+.customer-info {
+  border-top: 1px solid #e5e7eb;
+  margin-top: 12px;
+  padding-top: 12px;
+}
+
+.customer-info .invoice-row {
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.customer-info .invoice-row strong {
+  color: #374151;
 }
 
 .btn-primary {

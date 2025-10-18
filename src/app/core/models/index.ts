@@ -43,9 +43,13 @@ export interface Invoice {
   subtotal: number;
   iva: number;
   total: number;
+  metodoPago?: string;
   // Campos adicionales opcionales
   nombreUsuario?: string;
   nombreCajero?: string;
+  // Datos del comprador/titular
+  nombreTitular?: string;
+  numeroTarjetaEnmascarado?: string;
 }
 
 // ==================== INVOICE DETAIL ====================

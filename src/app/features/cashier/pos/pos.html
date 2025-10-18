@@ -158,12 +158,66 @@
               <!-- Método de Pago -->
               <div class="payment-method">
                 <label>Método de Pago</label>
-                <select [(ngModel)]="selectedPaymentMethod" class="payment-select">
+                <select [(ngModel)]="selectedPaymentMethod" class="payment-select" (change)="onPaymentMethodChange()">
                   <option value="">Selecciona método</option>
                   <option *ngFor="let method of paymentMethods" [value]="method">
                     {{ method }}
                   </option>
                 </select>
+              </div>
+
+              <!-- Datos de Tarjeta -->
+              <div *ngIf="requiresCardData()" class="card-data-section">
+                <h4>Datos de la Tarjeta</h4>
+                
+                <div class="card-field">
+                  <label>Número de Tarjeta</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="cardData.numeroTarjeta" 
+                    class="card-input"
+                    placeholder="1234 5678 9012 3456"
+                    maxlength="19"
+                    (input)="formatCardNumber($event)">
+                </div>
+
+                <div class="card-field">
+                  <label>Nombre del Titular</label>
+                  <input 
+                    type="text" 
+                    [(ngModel)]="cardData.nombreTitular" 
+                    class="card-input"
+                    placeholder="JUAN PÉREZ">
+                </div>
+
+                <div class="card-row">
+                  <div class="card-field card-field-small">
+                    <label>CVV</label>
+                    <input 
+                      type="text" 
+                      [(ngModel)]="cardData.codigoSeguridad" 
+                      class="card-input"
+                      placeholder="123"
+                      maxlength="4"
+                      (input)="onCvvInput($event)">
+                  </div>
+                  
+                  <div class="card-field card-field-small">
+                    <label>Mes</label>
+                    <select [(ngModel)]="cardData.mesVencimiento" class="card-select">
+                      <option value="">MM</option>
+                      <option *ngFor="let mes of ['01','02','03','04','05','06','07','08','09','10','11','12']" [value]="mes">{{mes}}</option>
+                    </select>
+                  </div>
+                  
+                  <div class="card-field card-field-small">
+                    <label>Año</label>
+                    <select [(ngModel)]="cardData.anoVencimiento" class="card-select">
+                      <option value="">YYYY</option>
+                      <option *ngFor="let ano of ['2024','2025','2026','2027','2028','2029','2030']" [value]="ano">{{ano}}</option>
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <!-- Botones de Acción -->
@@ -211,6 +265,21 @@
       <div class="invoice-row">
         <span>Total:</span>
         <strong>{{ formatCurrency(generatedInvoice.total) }}</strong>
+      </div>
+      <div class="invoice-row" *ngIf="generatedInvoice.metodoPago">
+        <span>Método de Pago:</span>
+        <strong>{{ generatedInvoice.metodoPago }}</strong>
+      </div>
+      <!-- Datos del comprador/titular (solo para tarjetas) -->
+      <div class="customer-info" *ngIf="generatedInvoice.nombreTitular">
+        <div class="invoice-row">
+          <span>Titular:</span>
+          <strong>{{ generatedInvoice.nombreTitular }}</strong>
+        </div>
+        <div class="invoice-row" *ngIf="generatedInvoice.numeroTarjetaEnmascarado">
+          <span>Tarjeta:</span>
+          <strong>{{ generatedInvoice.numeroTarjetaEnmascarado }}</strong>
+        </div>
       </div>
     </div>
 
