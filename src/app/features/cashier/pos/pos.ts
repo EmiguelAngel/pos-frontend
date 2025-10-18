@@ -2,6 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 
 import { NavbarComponent } from '../../../shared/components/navbar/navbar';
 import { SidebarComponent } from '../../../shared/components/sidebar/sidebar';
@@ -54,7 +55,8 @@ export class PosComponent implements OnInit {
     private productService: ProductService,
     private cartService: CartService,
     private salesService: SalesService,
-    private authService: AuthService
+    private authService: AuthService,
+    private http: HttpClient
   ) {}
 
   ngOnInit(): void {
@@ -224,17 +226,63 @@ export class PosComponent implements OnInit {
     };
 
     // 🔌 Llamada a la API
+    console.log('Datos a enviar:', saleData);
+    
+    // Hacer la llamada directamente con HttpClient para tener más control
     this.salesService.createSale(saleData).subscribe({
       next: (invoice) => {
+        console.log('Venta procesada exitosamente:', invoice);
         this.processingPayment = false;
         this.generatedInvoice = invoice;
         this.showConfirmModal = true;
         this.cartService.clearCart();
         this.selectedPaymentMethod = '';
       },
-      error: (err) => {
-        console.error('Error procesando venta:', err);
-        this.showError(MESSAGES.SALE.ERROR);
+      error: (httpError) => {
+        console.error('🚨 === ANÁLISIS COMPLETO DEL ERROR ===');
+        console.error('1. Error completo:', httpError);
+        console.error('2. Constructor:', httpError.constructor.name);
+        console.error('3. Status:', httpError.status);
+        console.error('4. StatusText:', httpError.statusText);
+        console.error('5. Error body:', httpError.error);
+        console.error('6. Message:', httpError.message);
+        console.error('7. Name:', httpError.name);
+        console.error('8. Todas las propiedades:', Object.getOwnPropertyNames(httpError));
+        
+        // Intento más robusto de extraer información
+        let errorMessage = 'Error procesando venta';
+        let statusCode = 'sin-estado';
+        
+        try {
+          // Priorizar el mensaje del backend
+          if (httpError.error && typeof httpError.error === 'object') {
+            if (httpError.error.mensaje) {
+              errorMessage = httpError.error.mensaje;
+            } else if (httpError.error.message) {
+              errorMessage = httpError.error.message;
+            }
+          } else if (httpError.error && typeof httpError.error === 'string') {
+            errorMessage = httpError.error;
+          } else if (httpError.message) {
+            errorMessage = httpError.message;
+          }
+          
+          // Obtener código de estado
+          if (typeof httpError.status === 'number') {
+            statusCode = httpError.status.toString();
+          } else if (httpError.status) {
+            statusCode = String(httpError.status);
+          }
+          
+        } catch (parseError) {
+          console.error('Error parseando el error:', parseError);
+          errorMessage = 'Error interno del sistema';
+        }
+        
+        const finalMessage = `${errorMessage} [${statusCode}]`;
+        console.log('Mensaje final:', finalMessage);
+        
+        this.showError(finalMessage);
         this.processingPayment = false;
       }
     });
@@ -246,6 +294,48 @@ export class PosComponent implements OnInit {
   closeConfirmModal(): void {
     this.showConfirmModal = false;
     this.generatedInvoice = null;
+  }
+
+  /**
+   * Descargar factura en PDF
+   */
+  downloadInvoicePdf(): void {
+    if (!this.generatedInvoice || !this.generatedInvoice.idFactura) {
+      console.error('No hay factura para descargar');
+      return;
+    }
+
+    console.log('📄 Descargando PDF de factura:', this.generatedInvoice.idFactura);
+    
+    const url = `${environment.apiUrl}/ventas/factura/${this.generatedInvoice.idFactura}/pdf`;
+    
+    this.http.get(url, { 
+      responseType: 'blob',
+      observe: 'response' 
+    }).subscribe({
+      next: (response) => {
+        console.log('✅ PDF descargado exitosamente');
+        
+        // Crear blob y descargar
+        const blob = response.body;
+        if (blob) {
+          const url = window.URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `factura_${this.generatedInvoice!.idFactura}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          window.URL.revokeObjectURL(url);
+          
+          this.showSuccess('PDF descargado correctamente');
+        }
+      },
+      error: (error) => {
+        console.error('❌ Error descargando PDF:', error);
+        this.showError('Error al descargar la factura PDF');
+      }
+    });
   }
 
   /**

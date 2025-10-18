@@ -10,6 +10,11 @@ import { catchError, throwError } from 'rxjs';
 export const errorInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
 
+  // Si la request tiene el header para saltar el interceptor, no procesar errores
+  if (req.headers.get('X-Skip-Error-Interceptor') === 'true') {
+    return next(req);
+  }
+
   return next(req).pipe(
     catchError((error: HttpErrorResponse) => {
       let errorMessage = 'Ocurrió un error desconocido';

@@ -20,9 +20,23 @@ export class SalesService {
    * ========================================
    */
   createSale(saleData: CreateSaleRequest): Observable<Invoice> {
+    console.log('🔄 SalesService.createSale llamado con:', saleData);
+    
     // Conectado al endpoint /api/ventas/procesar usando el patrón Facade
-    return this.http.post<Invoice>(`${this.apiUrl}/procesar`, saleData)
-      .pipe(catchError(this.handleError));
+    // Agregar contexto para evitar interceptor de errores
+    return this.http.post<Invoice>(`${this.apiUrl}/procesar`, saleData, {
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Skip-Error-Interceptor': 'true'  // Header personalizado para identificar esta llamada
+      }
+    }).pipe(
+      catchError((httpErrorResponse) => {
+        console.error('🚨 Error crudo en SalesService:', httpErrorResponse);
+        
+        // No modificar el error, solo loggearlo y pasarlo tal como viene
+        return throwError(() => httpErrorResponse);
+      })
+    );
   }
 
   /**
@@ -122,6 +136,8 @@ export class SalesService {
     return this.http.get<any>(`${this.apiUrl}/stats`)
       .pipe(catchError(this.handleError));
   }
+
+
 
   /**
    * Manejo centralizado de errores
