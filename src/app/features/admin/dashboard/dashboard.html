@@ -122,8 +122,8 @@
                   <span class="product-name">{{ product.descripcion }}</span>
                   <span class="product-category">{{ product.categoria }}</span>
                 </div>
-                <span class="product-stock" [class.critical]="product.cantidadDisponible <= 5">
-                  {{ product.cantidadDisponible }} unidades
+                <span class="product-stock" [class.critical]="(product.cantidadDisponible ?? 0) <= 5">
+                  {{ product.cantidadDisponible ?? 0 }} unidades
                 </span>
               </div>
             </div>

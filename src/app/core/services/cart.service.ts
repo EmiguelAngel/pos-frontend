@@ -32,7 +32,8 @@ export class CartService {
     const currentCart = this.getCartItems();
 
     // Validar stock disponible
-    if (product.cantidadDisponible < quantity) {
+    const stockDisponible = product.cantidadDisponible ?? 0;
+    if (stockDisponible < quantity) {
       console.error('Stock insuficiente');
       return false;
     }
@@ -47,20 +48,21 @@ export class CartService {
       const newQuantity = currentCart[existingItemIndex].quantity + quantity;
 
       // Validar stock
-      if (newQuantity > product.cantidadDisponible) {
+      const stockDisponible = product.cantidadDisponible ?? 0;
+      if (newQuantity > stockDisponible) {
         console.error('Stock insuficiente');
         return false;
       }
 
       currentCart[existingItemIndex].quantity = newQuantity;
       currentCart[existingItemIndex].subtotal =
-        product.precioUnitario * newQuantity;
+        (product.precioUnitario ?? 0) * newQuantity;
     } else {
       // Si no existe, agregar nuevo item
       const newItem: CartItem = {
         product: product,
         quantity: quantity,
-        subtotal: product.precioUnitario * quantity
+        subtotal: (product.precioUnitario ?? 0) * quantity
       };
       currentCart.push(newItem);
     }
@@ -101,14 +103,15 @@ export class CartService {
     const item = currentCart[itemIndex];
 
     // Validar stock
-    if (quantity > item.product.cantidadDisponible) {
+    const stockDisponible = item.product.cantidadDisponible ?? 0;
+    if (quantity > stockDisponible) {
       console.error('Stock insuficiente');
       return false;
     }
 
     // Actualizar cantidad y subtotal
     item.quantity = quantity;
-    item.subtotal = item.product.precioUnitario * quantity;
+    item.subtotal = (item.product.precioUnitario ?? 0) * quantity;
 
     this.updateCart(currentCart);
     return true;

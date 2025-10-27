@@ -19,9 +19,9 @@ export interface User {
 
 // ==================== PRODUCT ====================
 export interface Product {
-  idProducto: number;
-  cantidadDisponible: number;
-  precioUnitario: number;
+  idProducto?: number | null;
+  cantidadDisponible: number | null;
+  precioUnitario: number | null;
   descripcion: string;
   categoria: string;
 }

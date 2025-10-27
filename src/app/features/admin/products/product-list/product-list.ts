@@ -34,12 +34,43 @@ export class ProductListComponent implements OnInit {
   loading = true;
   error = '';
   successMessage = '';
+  formErrors: { [key: string]: string } = {};
 
   // Confirmación de eliminación
   showDeleteConfirm = false;
   productToDelete: Product | null = null;
 
   constructor(private productService: ProductService) {}
+
+  /**
+   * Validar precio al perder el foco
+   */
+  onPriceBlur(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value);
+    
+    if (isNaN(value) || value < 1) {
+      input.value = '1';
+      this.currentProduct.precioUnitario = 1;
+    } else {
+      this.currentProduct.precioUnitario = value;
+    }
+  }
+
+  /**
+   * Validar cantidad al perder el foco
+   */
+  onQuantityBlur(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement;
+    const value = parseInt(input.value);
+    
+    if (isNaN(value) || value < 0) {
+      input.value = '0';
+      this.currentProduct.cantidadDisponible = 0;
+    } else {
+      this.currentProduct.cantidadDisponible = value;
+    }
+  }
 
   ngOnInit(): void {
     this.loadProducts();
@@ -132,11 +163,23 @@ export class ProductListComponent implements OnInit {
       return;
     }
 
+    // Preparar el producto para enviar
+    const productToSave: Product = {
+      ...this.currentProduct,
+      precioUnitario: this.currentProduct.precioUnitario || 0,
+      cantidadDisponible: this.currentProduct.cantidadDisponible || 0
+    };
+
     if (this.isEditMode) {
       // Actualizar
+      if (!productToSave.idProducto) {
+        this.showError('Error: ID de producto no válido');
+        return;
+      }
+
       this.productService.updateProduct(
-        this.currentProduct.idProducto,
-        this.currentProduct
+        productToSave.idProducto,
+        productToSave
       ).subscribe({
         next: () => {
           this.showSuccess(MESSAGES.PRODUCT.UPDATED);
@@ -145,20 +188,24 @@ export class ProductListComponent implements OnInit {
         },
         error: (err) => {
           console.error('Error actualizando producto:', err);
-          this.showError(MESSAGES.PRODUCT.ERROR);
+          this.showError(err.message || MESSAGES.PRODUCT.ERROR);
         }
       });
     } else {
-      // Crear
-      this.productService.createProduct(this.currentProduct).subscribe({
-        next: () => {
+      // Crear - Asegurarnos de no enviar el ID
+      const { idProducto, ...newProduct } = productToSave;
+      console.log('Intentando crear producto:', newProduct);
+      
+      this.productService.createProduct(newProduct).subscribe({
+        next: (product) => {
+          console.log('Producto creado exitosamente:', product);
           this.showSuccess(MESSAGES.PRODUCT.CREATED);
           this.loadProducts();
           this.closeModal();
         },
         error: (err) => {
           console.error('Error creando producto:', err);
-          this.showError(MESSAGES.PRODUCT.ERROR);
+          this.showError(err.message || MESSAGES.PRODUCT.ERROR);
         }
       });
     }
@@ -184,7 +231,10 @@ export class ProductListComponent implements OnInit {
    * 🔌 Eliminar producto
    */
   deleteProduct(): void {
-    if (!this.productToDelete) return;
+    if (!this.productToDelete || !this.productToDelete.idProducto) {
+      this.showError('Error: No se puede eliminar el producto');
+      return;
+    }
 
     this.productService.deleteProduct(this.productToDelete.idProducto).subscribe({
       next: () => {
@@ -201,26 +251,50 @@ export class ProductListComponent implements OnInit {
   }
 
   /**
-   * Validar producto
+   * Validar un campo específico
+   */
+  validateField(field: string): void {
+    switch (field) {
+      case 'descripcion':
+        if (!this.currentProduct.descripcion?.trim()) {
+          this.showError('La descripción es requerida', field);
+        }
+        break;
+      case 'categoria':
+        if (!this.currentProduct.categoria?.trim()) {
+          this.showError('La categoría es requerida', field);
+        }
+        break;
+      case 'precioUnitario':
+        if (!this.currentProduct.precioUnitario || this.currentProduct.precioUnitario <= 0) {
+          this.showError('El precio debe ser mayor a 0', field);
+        }
+        break;
+      case 'cantidadDisponible':
+        if (this.currentProduct.cantidadDisponible === null || 
+            this.currentProduct.cantidadDisponible === undefined || 
+            this.currentProduct.cantidadDisponible < 0) {
+          this.showError('La cantidad no puede ser negativa', field);
+        }
+        break;
+    }
+  }
+
+  /**
+   * Validar producto completo
    */
   validateProduct(): boolean {
-    if (!this.currentProduct.descripcion.trim()) {
-      this.showError('La descripción es requerida');
-      return false;
-    }
-    if (!this.currentProduct.categoria) {
-      this.showError('La categoría es requerida');
-      return false;
-    }
-    if (this.currentProduct.precioUnitario <= 0) {
-      this.showError('El precio debe ser mayor a 0');
-      return false;
-    }
-    if (this.currentProduct.cantidadDisponible < 0) {
-      this.showError('La cantidad no puede ser negativa');
-      return false;
-    }
-    return true;
+    let isValid = true;
+
+    // Validar cada campo
+    ['descripcion', 'categoria', 'precioUnitario', 'cantidadDisponible'].forEach(field => {
+      this.validateField(field);
+      if (this.formErrors[field]) {
+        isValid = false;
+      }
+    });
+
+    return isValid;
   }
 
   /**
@@ -228,7 +302,7 @@ export class ProductListComponent implements OnInit {
    */
   getEmptyProduct(): Product {
     return {
-      idProducto: 0,
+      idProducto: null,
       descripcion: '',
       categoria: '',
       precioUnitario: 0,
@@ -241,6 +315,8 @@ export class ProductListComponent implements OnInit {
    */
   showSuccess(message: string): void {
     this.successMessage = message;
+    this.error = '';
+    this.formErrors = {};
     setTimeout(() => {
       this.successMessage = '';
     }, 3000);
@@ -249,11 +325,20 @@ export class ProductListComponent implements OnInit {
   /**
    * Mostrar mensaje de error
    */
-  showError(message: string): void {
-    this.error = message;
+  showError(message: string, field?: string): void {
+    if (field) {
+      this.formErrors[field] = message;
+    } else {
+      this.error = message;
+    }
+    this.successMessage = '';
     setTimeout(() => {
-      this.error = '';
-    }, 3000);
+      if (field) {
+        delete this.formErrors[field];
+      } else {
+        this.error = '';
+      }
+    }, 5000);
   }
 
   /**

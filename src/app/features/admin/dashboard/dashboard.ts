@@ -57,7 +57,7 @@ export class DashboardComponent implements OnInit {
       next: (products) => {
         this.totalProducts = products.length;
         this.lowStockProductsList = products.filter(
-          p => p.cantidadDisponible <= STOCK.LOW_THRESHOLD
+          p => (p.cantidadDisponible ?? 0) <= STOCK.LOW_THRESHOLD
         );
         this.lowStockProducts = this.lowStockProductsList.length;
       },

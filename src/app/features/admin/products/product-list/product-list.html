@@ -79,19 +79,19 @@
             </thead>
             <tbody>
               <tr *ngFor="let product of filteredProducts">
-                <td>{{ product.idProducto }}</td>
+                <td>{{ product.idProducto || '-' }}</td>
                 <td class="product-name">{{ product.descripcion }}</td>
                 <td>
                   <span class="badge">{{ product.categoria }}</span>
                 </td>
-                <td class="price">{{ formatCurrency(product.precioUnitario) }}</td>
-                <td class="stock">{{ product.cantidadDisponible }}</td>
+                <td class="price">{{ product.precioUnitario ? formatCurrency(product.precioUnitario) : '-' }}</td>
+                <td class="stock">{{ product.cantidadDisponible ?? 0 }}</td>
                 <td>
-                  <span [class]="'stock-badge ' + getStockClass(product.cantidadDisponible)">
-                    <span *ngIf="product.cantidadDisponible === 0">Sin stock</span>
-                    <span *ngIf="product.cantidadDisponible > 0 && product.cantidadDisponible <= 5">Stock crítico</span>
-                    <span *ngIf="product.cantidadDisponible > 5 && product.cantidadDisponible <= 10">Stock bajo</span>
-                    <span *ngIf="product.cantidadDisponible > 10">Disponible</span>
+                  <span [class]="'stock-badge ' + getStockClass(product.cantidadDisponible || 0)">
+                    <span *ngIf="!(product.cantidadDisponible ?? 0)">Sin stock</span>
+                    <span *ngIf="(product.cantidadDisponible ?? 0) > 0 && (product.cantidadDisponible ?? 0) <= 5">Stock crítico</span>
+                    <span *ngIf="(product.cantidadDisponible ?? 0) > 5 && (product.cantidadDisponible ?? 0) <= 10">Stock bajo</span>
+                    <span *ngIf="(product.cantidadDisponible ?? 0) > 10">Disponible</span>
                   </span>
                 </td>
                 <td class="actions">
@@ -154,15 +154,31 @@
           [(ngModel)]="currentProduct.descripcion"
           placeholder="Ej: Arroz Diana 1Kg"
           class="form-input"
+          required
+          maxlength="1024"
+          [class.input-error]="formErrors['descripcion']"
+          (blur)="validateField('descripcion')"
         />
+        <small class="error-message" *ngIf="formErrors['descripcion']">
+          {{ formErrors['descripcion'] }}
+        </small>
       </div>
 
       <div class="form-group">
         <label>Categoría *</label>
-        <select [(ngModel)]="currentProduct.categoria" class="form-select">
-          <option value="">Selecciona una categoría</option>
+        <select 
+          [(ngModel)]="currentProduct.categoria" 
+          class="form-select" 
+          required
+          [class.input-error]="formErrors['categoria']"
+          (blur)="validateField('categoria')"
+        >
+          <option value="" disabled>Selecciona una categoría</option>
           <option *ngFor="let cat of categories" [value]="cat">{{ cat }}</option>
         </select>
+        <small class="error-message" *ngIf="formErrors['categoria']">
+          {{ formErrors['categoria'] }}
+        </small>
       </div>
 
       <div class="form-row">
@@ -171,10 +187,18 @@
           <input
             type="number"
             [(ngModel)]="currentProduct.precioUnitario"
+            [ngModelOptions]="{updateOn: 'blur'}"
             placeholder="0"
-            min="0"
+            min="1"
+            step="1"
+            required
             class="form-input"
+            [class.input-error]="formErrors['precioUnitario']"
+            (blur)="onPriceBlur($event)"
           />
+          <small class="error-message" *ngIf="formErrors['precioUnitario']">
+            {{ formErrors['precioUnitario'] }}
+          </small>
         </div>
 
         <div class="form-group">
@@ -182,10 +206,18 @@
           <input
             type="number"
             [(ngModel)]="currentProduct.cantidadDisponible"
+            [ngModelOptions]="{updateOn: 'blur'}"
             placeholder="0"
             min="0"
+            step="1"
+            required
             class="form-input"
+            [class.input-error]="formErrors['cantidadDisponible']"
+            (blur)="onQuantityBlur($event)"
           />
+          <small class="error-message" *ngIf="formErrors['cantidadDisponible']">
+            {{ formErrors['cantidadDisponible'] }}
+          </small>
         </div>
       </div>
     </div>

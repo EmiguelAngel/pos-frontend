@@ -82,7 +82,7 @@ export class PosComponent implements OnInit {
 
     this.productService.getProducts().subscribe({
       next: (products) => {
-        this.products = products.filter(p => p.cantidadDisponible > 0);
+        this.products = products.filter(p => (p.cantidadDisponible ?? 0) > 0);
         this.filteredProducts = this.products;
         this.loading = false;
       },
@@ -160,14 +160,16 @@ export class PosComponent implements OnInit {
    * Aumentar cantidad en el carrito
    */
   increaseQuantity(item: CartItem): void {
-    this.cartService.updateQuantity(item.product.idProducto, item.quantity + 1);
+    if (item.product.idProducto) {
+      this.cartService.updateQuantity(item.product.idProducto, item.quantity + 1);
+    }
   }
 
   /**
    * Disminuir cantidad en el carrito
    */
   decreaseQuantity(item: CartItem): void {
-    if (item.quantity > 1) {
+    if (item.quantity > 1 && item.product.idProducto) {
       this.cartService.updateQuantity(item.product.idProducto, item.quantity - 1);
     } else {
       this.removeFromCart(item);
@@ -178,7 +180,9 @@ export class PosComponent implements OnInit {
    * Remover del carrito
    */
   removeFromCart(item: CartItem): void {
-    this.cartService.removeFromCart(item.product.idProducto);
+    if (item.product.idProducto) {
+      this.cartService.removeFromCart(item.product.idProducto);
+    }
   }
 
   /**
@@ -308,10 +312,12 @@ export class PosComponent implements OnInit {
 
     const saleData: CreateSaleRequest = {
       idUsuario: currentUser.idUsuario,
-      items: this.cartItems.map(item => ({
-        idProducto: item.product.idProducto,
-        cantidad: item.quantity
-      })),
+      items: this.cartItems
+        .filter(item => item.product.idProducto != null)
+        .map(item => ({
+          idProducto: item.product.idProducto!,
+          cantidad: item.quantity
+        })),
       datosPago: datosPago
     };
 
@@ -452,7 +458,8 @@ export class PosComponent implements OnInit {
   /**
    * Formatear moneda
    */
-  formatCurrency(amount: number): string {
+  formatCurrency(amount: number | null): string {
+    if (amount === null) amount = 0;
     return new Intl.NumberFormat('es-CO', {
       style: 'currency',
       currency: 'COP',

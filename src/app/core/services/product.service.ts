@@ -1,7 +1,8 @@
 // src/app/core/services/product.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, map } from 'rxjs';
+import { ApiResponse } from '../models/api-response.model';
 
 import { environment } from '../../../environments/environment';
 import { Product } from '../models';
@@ -20,9 +21,16 @@ export class ProductService {
    * ========================================
    */
   getProducts(): Observable<Product[]> {
-
-    return this.http.get<Product[]>(this.apiUrl)
-      .pipe(catchError(this.handleError));
+    return this.http.get<ApiResponse<Product[]>>(this.apiUrl)
+      .pipe(
+        map((response: ApiResponse<Product[]>) => {
+          if (!response.success || !response.data) {
+            throw new Error(response.message);
+          }
+          return response.data;
+        }),
+        catchError(this.handleError)
+      );
   }
 
   /**
@@ -31,8 +39,16 @@ export class ProductService {
    * @returns Observable con los datos del producto
    */
   getProductById(id: number): Observable<Product> {
-    return this.http.get<Product>(`${this.apiUrl}/${id}`)
-      .pipe(catchError(this.handleError));
+    return this.http.get<ApiResponse<Product>>(`${this.apiUrl}/${id}`)
+      .pipe(
+        map((response: ApiResponse<Product>) => {
+          if (!response.success || !response.data) {
+            throw new Error(response.message);
+          }
+          return response.data;
+        }),
+        catchError(this.handleError)
+      );
   }
 
   /**
@@ -41,9 +57,33 @@ export class ProductService {
    * ========================================
    */
   createProduct(product: Product): Observable<Product> {
-
-    return this.http.post<Product>(this.apiUrl, product)
-      .pipe(catchError(this.handleError));
+    // Crear una copia del producto sin el ID
+    const { idProducto, ...productWithoutId } = product;
+    console.log('Enviando producto sin ID:', productWithoutId);
+    
+    return this.http.post<ApiResponse<Product>>(this.apiUrl, productWithoutId)
+      .pipe(
+        map((response: ApiResponse<Product>) => {
+          console.log('Respuesta del servidor:', response);
+          if (!response.success) {
+            throw new Error(response.message || 'Error al procesar producto');
+          }
+          if (!response.data) {
+            throw new Error('No se recibieron datos del producto');
+          }
+          return response.data;
+        }),
+        catchError(error => {
+          console.error('Error en createProduct:', error);
+          if (error.error && error.error.message) {
+            throw new Error(error.error.message);
+          } else if (error.message) {
+            throw new Error(error.message);
+          } else {
+            throw new Error('Error al procesar producto');
+          }
+        })
+      );
   }
 
   /**
