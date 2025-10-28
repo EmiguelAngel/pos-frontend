@@ -1,1 +1,61 @@
-<p>cart works!</p>
+<div class="cart-container">
+  <h2>Carrito de Compras</h2>
+  
+  <div class="cart-items" *ngIf="cartItems.length > 0">
+    <div class="cart-item" *ngFor="let item of cartItems">
+      <div class="item-details">
+        <span class="item-name">{{item.product.descripcion}}</span>
+        <span class="item-quantity">x {{item.quantity}}</span>
+        <span class="item-price">S/. {{item.subtotal}}</span>
+      </div>
+    </div>
+    
+    <div class="cart-total">
+      <span>Total:</span>
+      <span class="total-amount">S/. {{total}}</span>
+    </div>
+
+    <!-- Mantiene tus métodos de pago originales -->
+    <div class="payment-actions">
+      <button class="btn-pagar" (click)="processLocalPayment()">Finalizar compra</button>
+    </div>
+  </div>
+
+  <!-- Opción de pago con Mercado Pago - FUERA del *ngIf para que no se destruya -->
+  <div class="alternative-payment" *ngIf="cartItems.length > 0">
+    
+    <!-- Botón para completar venta después de pagar en MP -->
+    <div *ngIf="hasPendingMercadoPagoPayment" style="background: #d4edda; border: 2px solid #28a745; border-radius: 8px; padding: 20px; margin-bottom: 20px; text-align: center;">
+      <h3 style="color: #155724; margin: 0 0 10px 0;">✅ ¡Pago Completado en Mercado Pago!</h3>
+      <p style="color: #155724; margin: 0 0 15px 0;">Haz clic en el botón de abajo para finalizar tu venta</p>
+      <button 
+        (click)="completeMercadoPagoPayment()"
+        style="
+          background-color: #28a745;
+          color: white;
+          border: none;
+          border-radius: 6px;
+          padding: 15px 30px;
+          font-size: 18px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.3s;
+        "
+        onmouseover="this.style.backgroundColor='#218838'"
+        onmouseout="this.style.backgroundColor='#28a745'"
+      >
+        🎉 Completar Venta
+      </button>
+    </div>
+
+    <p style="background: yellow; padding: 10px;">DEBUG: Componente MP debe aparecer aquí - Items: {{cartItems.length}}</p>
+    <app-mercadopago-button
+      [items]="cartItems"
+      [total]="total"
+    ></app-mercadopago-button>
+  </div>
+
+  <div class="empty-cart" *ngIf="cartItems.length === 0">
+    <p>El carrito está vacío</p>
+  </div>
+</div>

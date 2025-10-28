@@ -754,3 +754,36 @@
   border-color: #9ca3af;
   transform: translateY(-1px);
 }
+
+/* Separador de Mercado Pago */
+.payment-separator {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 20px 0;
+}
+
+.payment-separator span {
+  color: #6b7280;
+  font-size: 14px;
+  padding: 0 10px;
+  background: white;
+  position: relative;
+}
+
+.payment-separator::before {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.payment-separator::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+/* Sección de Mercado Pago */
+.mercadopago-section {
+  margin-top: 15px;
+}

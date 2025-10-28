@@ -237,6 +237,19 @@
                   </span>
                 </button>
               </div>
+
+              <!-- Separador -->
+              <div class="payment-separator">
+                <span>o pagar con</span>
+              </div>
+
+              <!-- Botón de Mercado Pago -->
+              <div class="mercadopago-section">
+                <app-mercadopago-button
+                  [items]="cartItems"
+                  [total]="total"
+                ></app-mercadopago-button>
+              </div>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 
 import { NavbarComponent } from '../../../shared/components/navbar/navbar';
 import { SidebarComponent } from '../../../shared/components/sidebar/sidebar';
+import { MercadoPagoButtonComponent } from './cart/mercadopago-button/mercadopago-button.component';
 import { ProductService } from '../../../core/services/product.service';
 import { CartService } from '../../../core/services/cart.service';
 import { SalesService } from '../../../core/services/sales.service';
@@ -17,7 +18,7 @@ import { environment } from '../../../../environments/environment';
 @Component({
   selector: 'app-pos',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, SidebarComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, SidebarComponent, MercadoPagoButtonComponent],
   templateUrl: './pos.html',
   styleUrls: ['./pos.css']
 })
@@ -71,6 +72,123 @@ export class PosComponent implements OnInit {
   ngOnInit(): void {
     this.loadProducts();
     this.subscribeToCart();
+    this.checkMercadoPagoReturn();
+  }
+
+  /**
+   * Verificar si regresamos de Mercado Pago con pago exitoso
+   * También verifica si hay un pago pendiente de completar
+   */
+  checkMercadoPagoReturn(): void {
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentStatus = urlParams.get('payment');
+    
+    // Verificar si el usuario acaba de volver de MP (con parámetro en URL)
+    if (paymentStatus === 'success') {
+      console.log('✅ Pago exitoso detectado por parámetro URL, procesando venta...');
+      this.completeMercadoPagoSale();
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === 'pending') {
+      this.showError('Pago pendiente. Se procesará cuando se confirme.');
+      localStorage.removeItem('mp_cart_items');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else if (paymentStatus === 'failure') {
+      this.showError('El pago fue rechazado. Por favor intenta nuevamente.');
+      localStorage.removeItem('mp_cart_items');
+      window.history.replaceState({}, document.title, window.location.pathname);
+    } else {
+      // Verificar si hay un pago pendiente de completar (el usuario volvió manualmente)
+      const savedItems = localStorage.getItem('mp_cart_items');
+      if (savedItems) {
+        console.log('⚠️ Detectado pago pendiente de completar');
+        // Mostrar alerta al usuario para que confirme si pagó
+        setTimeout(() => {
+          if (confirm('¿Completaste el pago con Mercado Pago? Si es así, haz clic en Aceptar para finalizar la venta.')) {
+            this.completeMercadoPagoSale();
+          } else {
+            localStorage.removeItem('mp_cart_items');
+            this.showError('Pago cancelado. Los items fueron eliminados del carrito.');
+          }
+        }, 1000);
+      }
+    }
+  }
+
+  /**
+   * Completar venta de Mercado Pago (restaura carrito y procesa)
+   */
+  private completeMercadoPagoSale(): void {
+    // Restaurar items del carrito desde localStorage
+    const savedItems = localStorage.getItem('mp_cart_items');
+    if (savedItems) {
+      const items = JSON.parse(savedItems);
+      console.log('Restaurando items del carrito:', items);
+      // Cargar los items al carrito
+      items.forEach((item: any) => {
+        this.cartService.addToCart(item.product, item.quantity);
+      });
+      // Esperar un momento para que el carrito se actualice
+      setTimeout(() => {
+        this.processMercadoPagoSale();
+      }, 500);
+    } else {
+      this.showError('No se encontraron items del carrito guardados.');
+    }
+  }
+
+  /**
+   * Procesar venta después de pago exitoso con Mercado Pago
+   */
+  processMercadoPagoSale(): void {
+    if (this.cartItems.length === 0) {
+      this.showError('El carrito está vacío. No se puede procesar la venta.');
+      return;
+    }
+
+    this.processingPayment = true;
+    const currentUser = this.authService.getCurrentUser();
+    
+    if (!currentUser) {
+      this.showError('Usuario no autenticado');
+      this.processingPayment = false;
+      return;
+    }
+
+    // Crear venta con método de pago Mercado Pago
+    const saleData: CreateSaleRequest = {
+      idUsuario: currentUser.idUsuario,
+      items: this.cartItems
+        .filter(item => item.product.idProducto != null)
+        .map(item => ({
+          idProducto: item.product.idProducto!,
+          cantidad: item.quantity
+        })),
+      datosPago: {
+        metodoPago: 'MERCADO_PAGO' as any, // Nuevo método de pago
+        nombreTitular: 'Pago con Mercado Pago'
+      }
+    };
+
+    console.log('Procesando venta de Mercado Pago:', saleData);
+
+    this.salesService.createSale(saleData).subscribe({
+      next: (invoice) => {
+        console.log('✅ Venta procesada exitosamente:', invoice);
+        this.processingPayment = false;
+        this.generatedInvoice = invoice;
+        this.showConfirmModal = true;
+        this.cartService.clearCart();
+        localStorage.removeItem('mp_cart_items'); // Limpiar items guardados
+        this.showSuccess('¡Venta procesada exitosamente!');
+        this.loadProducts(); // Recargar productos para actualizar stock
+      },
+      error: (error) => {
+        console.error('❌ Error procesando venta:', error);
+        this.processingPayment = false;
+        localStorage.removeItem('mp_cart_items'); // Limpiar items guardados
+        this.showError('Error al procesar la venta: ' + (error.error?.message || error.message));
+      }
+    });
   }
 
   /**
