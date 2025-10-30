@@ -101,16 +101,36 @@
                 <td>{{ formatCurrency(sale.iva) }}</td>
                 <td class="total-amount">{{ formatCurrency(sale.total) }}</td>
                 <td>
-                  <button
-                    class="btn-icon btn-view"
-                    (click)="viewDetails(sale)"
-                    title="Ver Detalle"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                      <circle cx="12" cy="12" r="3"></circle>
-                    </svg>
-                  </button>
+                  <div class="action-buttons">
+                    <button
+                      class="btn-icon btn-view"
+                      (click)="viewDetails(sale)"
+                      title="Ver Detalle"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                        <circle cx="12" cy="12" r="3"></circle>
+                      </svg>
+                    </button>
+                    
+                    <!-- Botón de devolución (solo si aplica) -->
+                    <button
+                      *ngIf="puedeSerDevuelta(sale)"
+                      class="btn-icon btn-refund"
+                      (click)="abrirModalDevolucion(sale)"
+                      title="Devolver Venta"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="1 4 1 10 7 10"></polyline>
+                        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
+                      </svg>
+                    </button>
+                    
+                    <!-- Badge de devuelta -->
+                    <span *ngIf="sale.devuelta" class="badge-devuelta" title="Esta venta fue devuelta">
+                      ✓ Devuelta
+                    </span>
+                  </div>
                 </td>
               </tr>
               <tr *ngIf="filteredSales.length === 0">
@@ -211,3 +231,11 @@
     </div>
   </div>
 </div>
+
+<!-- Modal de Devolución -->
+<app-devolucion-modal
+  [factura]="facturaParaDevolucion"
+  [usuarioActual]="usuarioActual"
+  (close)="cerrarModalDevolucion()"
+  (devolucionExitosa)="onDevolucionExitosa()"
+></app-devolucion-modal>

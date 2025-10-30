@@ -1,0 +1,88 @@
+<!-- Modal de Devolución -->
+<div class="modal-backdrop" *ngIf="isVisible" (click)="onBackdropClick($event)">
+  <div class="modal-container">
+    <!-- Header -->
+    <div class="modal-header">
+      <h2>🔄 Procesar Devolución</h2>
+      <button class="close-button" (click)="cerrarModal()" [disabled]="isProcessing">
+        <span>&times;</span>
+      </button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+      <!-- Información de la factura -->
+      <div class="factura-info" *ngIf="factura">
+        <div class="info-row">
+          <span class="label">Factura #:</span>
+          <span class="value">{{ factura.idFactura }}</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Monto Total:</span>
+          <span class="value">${{ factura.total | number:'1.2-2' }} COP</span>
+        </div>
+        <div class="info-row">
+          <span class="label">Fecha:</span>
+          <span class="value">{{ factura.fecha | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+
+      <!-- Advertencia -->
+      <div class="warning-box">
+        <strong>⚠️ Advertencia:</strong>
+        <p *ngIf="factura?.paymentId && esPaymentIdValido(factura.paymentId)">
+          Esta acción procesará un <strong>reembolso en Mercado Pago</strong> y restaurará el inventario de los productos.
+        </p>
+        <p *ngIf="!factura?.paymentId || !esPaymentIdValido(factura.paymentId)">
+          Esta acción <strong>restaurará el inventario</strong> de los productos (sin reembolso en Mercado Pago).
+        </p>
+        <p><strong>Esta operación no se puede deshacer.</strong></p>
+      </div>
+
+      <!-- Formulario -->
+      <div class="form-group">
+        <label for="motivo">Motivo de la devolución *</label>
+        <textarea
+          id="motivo"
+          [(ngModel)]="motivo"
+          placeholder="Describa el motivo de la devolución (mínimo 10 caracteres)"
+          rows="4"
+          [disabled]="isProcessing"
+          [class.invalid]="motivo.trim().length > 0 && motivo.trim().length < 10"
+        ></textarea>
+        <span class="char-count" [class.invalid]="motivo.trim().length < 10">
+          {{ motivo.trim().length }}/10 caracteres mínimos
+        </span>
+      </div>
+
+      <!-- Mensajes -->
+      <div class="message success-message" *ngIf="successMessage">
+        ✅ {{ successMessage }}
+      </div>
+      <div class="message error-message" *ngIf="errorMessage">
+        ❌ {{ errorMessage }}
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="modal-footer">
+      <button 
+        class="btn btn-cancel" 
+        (click)="cerrarModal()"
+        [disabled]="isProcessing"
+      >
+        Cancelar
+      </button>
+      <button 
+        class="btn btn-process" 
+        (click)="procesarDevolucion()"
+        [disabled]="!isFormValid || isProcessing"
+      >
+        <span *ngIf="!isProcessing">Procesar Devolución</span>
+        <span *ngIf="isProcessing">
+          <span class="spinner"></span> Procesando...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>

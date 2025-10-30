@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 
 import { NavbarComponent } from '../../../shared/components/navbar/navbar';
 import { SidebarComponent } from '../../../shared/components/sidebar/sidebar';
+import { DevolucionModalComponent } from '../../../shared/components/devolucion-modal/devolucion-modal';
 import { SalesService } from '../../../core/services/sales.service';
 import { AuthService } from '../../../core/services/auth.service';
 import { Invoice, InvoiceDetail } from '../../../core/models';
@@ -12,7 +13,7 @@ import { Invoice, InvoiceDetail } from '../../../core/models';
 @Component({
   selector: 'app-sales-history',
   standalone: true,
-  imports: [CommonModule, FormsModule, NavbarComponent, SidebarComponent],
+  imports: [CommonModule, FormsModule, NavbarComponent, SidebarComponent, DevolucionModalComponent],
   templateUrl: './sales-history.html',
   styleUrls: ['./sales-history.css']
 })
@@ -28,6 +29,10 @@ export class SalesHistoryComponent implements OnInit {
   showDetailModal = false;
   selectedSale: Invoice | null = null;
   saleDetails: InvoiceDetail[] = [];
+
+  // Modal de devolución
+  showDevolucionModal = false;
+  facturaParaDevolucion: Invoice | null = null;
 
   // Estados
   loading = true;
@@ -114,7 +119,11 @@ export class SalesHistoryComponent implements OnInit {
    */
   calculateStats(): void {
     this.totalSales = this.filteredSales.length;
-    this.totalRevenue = this.filteredSales.reduce((sum, sale) => sum + sale.total, 0);
+    
+    // Excluir ventas devueltas del total de ingresos
+    this.totalRevenue = this.filteredSales
+      .filter(sale => !sale.devuelta) // Solo contar ventas NO devueltas
+      .reduce((sum, sale) => sum + sale.total, 0);
   }
 
   /**
@@ -168,5 +177,51 @@ export class SalesHistoryComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit'
     });
+  }
+
+  /**
+   * Verificar si una factura puede ser devuelta
+   */
+  puedeSerDevuelta(factura: Invoice): boolean {
+    // Solo se puede devolver si NO está devuelta
+    // Ahora soporta devoluciones con o sin Mercado Pago
+    return !factura.devuelta;
+  }
+
+  /**
+   * Abrir modal de devolución
+   */
+  abrirModalDevolucion(factura: Invoice): void {
+    this.facturaParaDevolucion = factura;
+    this.showDevolucionModal = true;
+  }
+
+  /**
+   * Cerrar modal de devolución
+   */
+  cerrarModalDevolucion(): void {
+    this.showDevolucionModal = false;
+    this.facturaParaDevolucion = null;
+  }
+
+  /**
+   * Manejar devolución exitosa
+   */
+  onDevolucionExitosa(): void {
+    console.log('✅ Devolución procesada exitosamente, recargando ventas...');
+    
+    // Recargar lista de ventas para reflejar el cambio
+    this.loadSales();
+    
+    // Mostrar mensaje de éxito temporal
+    this.error = ''; // Limpiar errores previos
+  }
+
+  /**
+   * Obtener nombre de usuario actual
+   */
+  get usuarioActual(): string {
+    const user = this.authService.getCurrentUser();
+    return user?.nombreUsuario || 'Sistema';
   }
 }

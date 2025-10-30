@@ -12,6 +12,7 @@ export interface User {
   idUsuario: number;
   idRol: number;
   nombre: string;
+  nombreUsuario?: string; // Alias o username
   correo: string;
   contrasena?: string; // Opcional al recibir del backend
   telefono: string;
@@ -50,6 +51,9 @@ export interface Invoice {
   // Datos del comprador/titular
   nombreTitular?: string;
   numeroTarjetaEnmascarado?: string;
+  // Campos para Mercado Pago y devoluciones
+  paymentId?: string; // ID del pago en Mercado Pago
+  devuelta?: boolean; // Indica si la factura fue devuelta
 }
 
 // ==================== INVOICE DETAIL ====================
@@ -107,6 +111,7 @@ export interface CreateSaleRequest {
   idUsuario: number;
   items: ItemVenta[];
   datosPago: DatosPago;
+  paymentId?: string; // ID del pago de Mercado Pago (opcional)
 }
 
 export interface ItemVenta {

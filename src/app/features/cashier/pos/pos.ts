@@ -154,6 +154,12 @@ export class PosComponent implements OnInit {
       return;
     }
 
+    // Obtener payment_id de la URL (viene como parámetro cuando el usuario regresa)
+    const urlParams = new URLSearchParams(window.location.search);
+    const paymentId = urlParams.get('payment_id');
+
+    console.log('💳 Payment ID capturado:', paymentId);
+
     // Crear venta con método de pago Mercado Pago
     const saleData: CreateSaleRequest = {
       idUsuario: currentUser.idUsuario,
@@ -166,7 +172,8 @@ export class PosComponent implements OnInit {
       datosPago: {
         metodoPago: 'MERCADO_PAGO' as any, // Nuevo método de pago
         nombreTitular: 'Pago con Mercado Pago'
-      }
+      },
+      paymentId: paymentId || undefined // Incluir payment_id si existe
     };
 
     console.log('Procesando venta de Mercado Pago:', saleData);
@@ -179,6 +186,12 @@ export class PosComponent implements OnInit {
         this.showConfirmModal = true;
         this.cartService.clearCart();
         localStorage.removeItem('mp_cart_items'); // Limpiar items guardados
+        
+        // Limpiar payment_id de la URL
+        if (paymentId) {
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        
         this.showSuccess('¡Venta procesada exitosamente!');
         this.loadProducts(); // Recargar productos para actualizar stock
       },
